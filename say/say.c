@@ -3,8 +3,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
-#define BUFFSIZE 1024
-#define FILENAME 256
+#define BUFFSIZE 2048
+#define FILENAME 1024
 
 
 struct sayNode {
@@ -26,24 +26,31 @@ int main(int argc, char**argv){
 						// for a particular command
 		int bflag=0;
 		int hflag=0;
+		int k;
+		char c;
 		
-		char* pattern;
-		//printf("\e[7mReversed\e[0m Normal\n");
+		char* pattern=NULL;
+		//printf("length is %d\n",strlen(""));
 		
 		for (argc--,argv++;argc>0;argc -= argCount, argv += argCount){
 			if (!strcmp(*argv, "-b")){
-				printf ("accept \" -b\" \n");
+				//printf ("accept \" -b\" \n");
 				bflag=1;
 			}               
 			else if (!strcmp(*argv, "-h")) {	
-			    printf ("accept \" -h\" \n");
+			    //printf ("accept \" -h\" \n");
 				hflag=1;
 			}else{
 				pattern=*argv;
 			}
 		}
+		if(pattern==NULL){
+			fprintf(stderr,"Please input searchstring\n");
+			exit(1);
+			
+		}
 
-		printf("pattern=%s\n",pattern);
+		//printf("pattern=%s\n",pattern);
 		
 		struct sayNode *newNode;
 		struct sayNode *now=NULL;
@@ -59,11 +66,29 @@ int main(int argc, char**argv){
 				fprintf(stderr,"nodeList:malloc failure for new sayNode\n");
 				exit(1);
 			}
+			newNode->fileName[0]='\0';
+			newNode->lineNo=0;
 			newNode->next=NULL;
-			
+			if(strchr(buf,':')==NULL){
+				continue;
+			}
 			sscanf(buf,"%[^:]:%[^:]",newNode->fileName,lineNum);
+			
+			for (k=0;k<strlen(lineNum);k++){
+				c=lineNum[k];
+				if (!isdigit(c)){
+				    fprintf(stderr, "Grep output contains line numbers which are non-numeric\n");
+				    exit(1);
+				}
+			}
+			
 			newNode->lineNo=atoi(lineNum);
-			//printf("newNode->fileName=%s,newNode->lineNo=%d\n",newNode->fileName,newNode->lineNo);
+			if (errno!=0){
+			    fprintf(stderr, "Grep output contains invalid line numbers.\n");
+				//perror("1st argument is invalid\n");
+			    exit(1);
+			}
+			//printf("%s:%d\n",newNode->fileName,newNode->lineNo);
 
 			if(now!=NULL){
 				now->next=newNode;
@@ -74,9 +99,15 @@ int main(int argc, char**argv){
 		}
 		
 		sayFind(head);
+	
+		if(strstr(head->sayContent,pattern)==NULL){
+			fprintf(stderr,"mismatched search strings\n");
+			exit(1);
+		}
+	
 		result=delDup(head);
 		if(bflag){
-			printf("%d witty sayings contain the string %s\n",result,pattern);
+			printf("\n%d witty sayings contain the string %s\n\n",result,pattern);
 		}
 		printSay(head,hflag,pattern);
 		
@@ -89,7 +120,11 @@ int main(int argc, char**argv){
 			free(current);
 			current=next;
 		}
-			
+		/*
+		if(bflag){
+			printf("%d witty sayings contain the string %s\n",result,pattern);
+		}
+		*/	
 		return 0;
 }
 
@@ -105,11 +140,14 @@ void sayFind(struct sayNode *head){
 	int currentLine;
 	char buf[BUFFSIZE];
 	char tmpstr[BUFFSIZE];
+	int tmplen;
 	
 	
 
 	while(current){
-		//printf("current->fileName=%s,current->lineNo=%d\n",current->fileName,current->lineNo);
+		//printf("%s:%d\n",current->fileName,current->lineNo);
+		currentFile = fopen(current->fileName,"r");
+		/*
 		if(strcmp(curFileName,current->fileName)!=0){
 			nextFile = fopen(current->fileName,"r");
 			if (nextFile == NULL) {
@@ -129,11 +167,16 @@ void sayFind(struct sayNode *head){
 				}
 			}
 		}
+		*/
 		//printf("currently handle file %s\n",curFileName);
 		fseek ( currentFile , 0 , SEEK_SET );
 		currentLine=1;
 		tmpstr[0]='\0';
+		buf[0]='\0';
+
 		while((fgets(buf,BUFFSIZE,currentFile))!=NULL){
+			//printf("%s",buf);
+			//buf[strlen(buf)]='\0';
 			if(strcmp(buf,"%\n")==0){
 				if(currentLine>current->lineNo){
 					break;
@@ -141,18 +184,32 @@ void sayFind(struct sayNode *head){
 					tmpstr[0]='\0';
 				}
 			}else{
+				tmplen=strlen(tmpstr);
+				if(tmplen+strlen(buf)>BUFFSIZE-1){
+					currentLine++;
+					buf[0]='\0';
+					continue;
+				}
+				//printf("strlen(tmpstr)=%d,strlen(buf)=%d\n",strlen(tmpstr),strlen(buf));
 				strcat(tmpstr,buf);
+				tmpstr[tmplen+strlen(tmpstr)]='\0';
+				
 			}
 			currentLine++;
+			
+			buf[0]='\0';
 		}
 		strcpy(current->sayContent,tmpstr);
 		
 		current=current->next;
+		
+		if (currentFile){
+		fclose(currentFile);
+		}
+		
 	}
 	
-	if (currentFile){
-		fclose(currentFile);
-	}
+	
 	
 	
 }
@@ -177,24 +234,25 @@ int delDup(struct sayNode *head){//delete duplicate and return real num of sayin
 
 void printSay(struct sayNode *head,int hflag,char* pattern){
 	struct sayNode *current=head;
-	char new[BUFFSIZE];
+	char new[BUFFSIZE*4];
 	char left[BUFFSIZE];
 	char tmp[BUFFSIZE];
+	int tmplen=0;
 	
 	char* subPtr=NULL;
 	
 	char replace[BUFFSIZE];
 	replace[0]='\0'; 
-	printf("%s\n",pattern);
+	//printf("%s\n",pattern);
 	strcpy(replace,"\e[7m");
 	strcat(replace,pattern);
+	
+	
 	strcat(replace,"\e[0m");
-	printf("%s\n",replace);
+	//printf("%s\n",replace);
 	
 	
 	int oldSubLen=strlen(pattern);
-	
-	
 	
 	
 	if(hflag){
@@ -205,7 +263,11 @@ void printSay(struct sayNode *head,int hflag,char* pattern){
 			new[0]='\0';
 			strcpy(left,current->sayContent);
 			while((subPtr=strstr(left,pattern))!=NULL){
+				
+				tmplen=strlen(new);
 				strncat(new,left,subPtr-left);
+				new[tmplen+(int)(subPtr-left)]='\0';
+				
 				strcat(new,replace);
 				strcpy(tmp,subPtr+oldSubLen);
 				strcpy(left,tmp);
