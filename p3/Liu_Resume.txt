@@ -1,0 +1,44 @@
+LIU YIN
+ 1324 S Mount Vernon Ave., Williamsburg, 23185     
+ (757) 603-0034, lyin01@email.wm.edu
+
+ EDUCATION
+ M.S. in Computer Science     May 2015(expected)
+ College of William and Mary, Williamsburg, VA
+ M.S. in Communication and Information System     June 2013
+ B.E. in Telecommunication Engineering June 2010
+ Huazhong University of Science and Technology, Wuhan, China
+
+ SKILLS
+-  C, C++, Qt, Tcl, Awk, Shell, Java, SQL, HTML, CSS, jQuery
+-  NS2/PDNS, MATLAB, LaTeX, Eclipse, Maven, Spring, Hibernate, GDB, Git, SVN
+
+ EXPERIENCE
+ Projects
+-  A web app for inter-calibration study of satellites' data     2013
+Led a team to design and develop a Java web application using Spring MVC framework. Analyzed and modeled the problem domain( data & service), leveraged Hibernate to simplify DAO implementation. Introduced unit testing to ensure correctness and robustness during module building. Added Spring Security module to secure URLs access.
+-  Nachos system     2013
+Implemented a modern Operating System“ Nachos” on a hardware( MIPS 2000) simulator using C++. Implemented Semaphore, Lock, Condition Variable, Monitor for concurrency control, file I/ O and process control related system calls to support user-level multiprogramming. Comparatively analyzed and evaluated system performance by implementing virtual memory and different scheduling algorithms. Added other features including a Nachos shell, a checkpoint system call to snapshot state of a user program.
+ Research Assistant at Internet Technology Engineering R&D Center, Wuhan, China
+-  Large-scale simulation of layered P2P streaming system     2012
+Designed and simulated a layered P2P live streaming protocol using C++, which enables flexible customization of video streams to support heterogeneous receivers. Architected and developed an integrated layered P2P streaming evaluation framework by extending a H.264 SVC streaming evaluation framework to NS2, which can evaluate real video streams in large P2P network with more than 6000 nodes. Improved chuck selection algorithm by introducing a multi-level buffer map structure, increased average playback continuity of peers by over 25%.
+-  An instant messaging app     2012
+Designed and developed a user-friendly cross-platform instant messaging tool using Qt, including server and client. Implemented features including one-to-one chatting, group discussion, contacts management, file transferring, history management and offline messaging.
+-  Research of multi-rate multicast routing with Network Coding     2011
+ Proposed a multi-rate multicast routing algorithm with Network Coding, which achieves desirable throughput while minimizing coding cost and maintaining load balance at the same time. With research team, obtained a patent,“ A network transmission method using Network Coding.”
+-  Research of Cooperative Spectrum Sensing in Cognitive Radio Networks     2010
+Studied and modeled Secondary Users' cooperative sensing and decision problem in a TDMA communication system. Formulated a linear optimization problem to maximize system throughput. Simulation results outperform other cooperative decision methods.
+
+ Teaching Assistant at Huazhong University of Science and Technology
+-  Design of Electronic Circuit of Communication(course & lab)     2011-2012
+
+ Internships
+-  Network Maintenance Assistant, China Mobile. Changsha, China     Summer 2009
+-  Market Researcher, Rich Advertisement Co., Ltd. Wuhan, China     Winter 2007
+
+HONORS/AWARDS
+Huazhong University of Science and Technology
+-  Master's Research Scholarship     2010, 2011, 2012
+-  Merit Student     2012
+-  Art and Sport Excellence Award     2011
+-  Outstanding Graduate     2010
