@@ -18,11 +18,11 @@ int wordProcess(char *);
 
 void usr1handler(){
 	char ch;
-	printf("\n Handling signal:Words with even letters:\n");
+	printf("\nWords with even letters:\n");
 	while (read(5,&ch,1)==1){
 		printf("%c",ch);
 	}
-	printf("Handling signal:Words with odd letters:\n");
+	printf("Words with odd letters:\n");
 	while (read(9,&ch,1)==1){
 		printf("%c",ch);
 	}
@@ -34,7 +34,7 @@ void usr1handler(){
 int main(int argc, char* argv[]){
 	signal(SIGTERM,usr1handler);
 	
-	printf("enter the scanner\n");
+	//printf("enter the scanner\n");
 	/*
 	if (argc!=2){
 		fprintf(stderr,"Invalid Use. Please just input the finename\n");
@@ -47,8 +47,8 @@ int main(int argc, char* argv[]){
 	int e2s_r=atoi(argv[2]);
 	int s2o_w=atoi(argv[3]);
 	int o2s_r=atoi(argv[4]);
-	printf("scanner:Successfully accept arg s2e_w=%d,e2s_r=%d \n",s2e_w,e2s_r);
-	printf("scanner:Successfully accept arg s2o_w=%d,o2s_r=%d \n",s2o_w,o2s_r);
+	//printf("scanner:Successfully accept arg s2e_w=%d,e2s_r=%d \n",s2e_w,e2s_r);
+	//printf("scanner:Successfully accept arg s2o_w=%d,o2s_r=%d \n",s2o_w,o2s_r);
 	
 	
 	
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]){
 	close(s2e_w);
 	close(s2o_w);
 	
-	printf("scanner:after the while loop, before printing ****\n");
+	//printf("scanner:after the while loop, before printing ****\n");
 
 	
 	while(1){

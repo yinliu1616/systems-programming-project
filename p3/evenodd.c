@@ -16,16 +16,16 @@ void writeBack(struct wordNode *head);
 
 
 int main(int argc, char* argv[]){
-	
+	/*
 	if (strcmp(argv[0],"even")==0){
 		printf("Enter even\n");
 	}
 	if (strcmp(argv[0],"odd")==0){
 		printf("Enter odd\n");
 	}
-	
+	*/
 	if(argc!=2){
-		fprintf(stderr, "num of arg for evenodd is not right\n");
+		fprintf(stderr, "Invalid use: specify 0 for standalone mode\n");
 		exit(1);
 	}
 	int scannerID=atoi(argv[1]);
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]){
 	//printWordLink(head);
 	
 	
-	printf("%s:after the while loop, about to exit\n",argv[0]);
+	//printf("%s:after the while loop, about to exit\n",argv[0]);
 	//sleep(10);
 	
 	exit(0);
@@ -135,7 +135,7 @@ int main(int argc, char* argv[]){
 void writeBack(struct wordNode *head){
 	struct wordNode *current=head;
 	char str_count[10];
-	printf("Write back to scanner Now:\n");
+	//printf("Write back to scanner Now:\n");
 	while(current){
 		//printf("%s     %d\n",current->word,current->count);
 		write(1,current->word,strlen(current->word));

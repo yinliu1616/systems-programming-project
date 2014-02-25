@@ -23,10 +23,10 @@ int main(int argc, char *argv[]){
 	pipe(even2scan);
 	pipe(scan2odd);
 	pipe(odd2scan);
-	printf("after pipe(), scan2even[0]=%d,scan2even[1]=%d\n",scan2even[0],scan2even[1]);
-	printf("after pipe(), even2scan[0]=%d,even2scan[1]=%d\n",even2scan[0],even2scan[1]);
-	printf("after pipe(), scan2odd[0]=%d,scan2odd[1]=%d\n",scan2odd[0],scan2odd[1]);
-	printf("after pipe(), odd2scan[0]=%d,odd2scan[1]=%d\n",odd2scan[0],odd2scan[1]);
+	//printf("after pipe(), scan2even[0]=%d,scan2even[1]=%d\n",scan2even[0],scan2even[1]);
+	//printf("after pipe(), even2scan[0]=%d,even2scan[1]=%d\n",even2scan[0],even2scan[1]);
+	//printf("after pipe(), scan2odd[0]=%d,scan2odd[1]=%d\n",scan2odd[0],scan2odd[1]);
+	//printf("after pipe(), odd2scan[0]=%d,odd2scan[1]=%d\n",odd2scan[0],odd2scan[1]);
 	
 	
 	if (argc!=2){
@@ -54,42 +54,45 @@ int main(int argc, char *argv[]){
 		sprintf(o2s_r,"%d",odd2scan[0]);
 		
 		
-		printf("after sprintf(), s2e_w=%s,e2s_r=%s\n",s2e_w,e2s_r);
-		printf("after sprintf(), s2o_w=%s,o2s_r=%s\n",s2o_w,o2s_r);
+		//printf("after sprintf(), s2e_w=%s,e2s_r=%s\n",s2e_w,e2s_r);
+		//printf("after sprintf(), s2o_w=%s,o2s_r=%s\n",s2o_w,o2s_r);
 		
 		
 		execl("./scanner","scanner",s2e_w,e2s_r,s2o_w,o2s_r,(char*)NULL);
 		fprintf(stderr,"Unable to exec scanner\n");
 	}
-	printf("scannerID=%d\n",scanner);
+	//printf("scannerID=%d\n",scanner);
 	sprintf(scannerID,"%d",scanner);
 	
 	
 	if((even=fork())==0){
-		printf("enter into new child process even\n");
+		//printf("enter into new child process even\n");
 		
 		close(curfd);
 		close(scan2odd[0]);close(scan2odd[1]);close(odd2scan[0]);close(odd2scan[1]);
 		close(0);dup2(scan2even[0],0);close(scan2even[0]);close(scan2even[1]);
 		close(1);dup2(even2scan[1],1);close(even2scan[1]);close(even2scan[0]);
-		printf("enter into new child process even,about to exec\n");
+		//printf("enter into new child process even,about to exec\n");
 		execl("./evenodd","even",scannerID,(char*)NULL);
-		printf("Unable to exec even");
+		//printf("Unable to exec even");
+		fprintf(stderr,"Unable to exec even\n");
+		
 	}
 	
 	if((odd=fork())==0){
-		printf("enter into new child process odd\n");
+		//printf("enter into new child process odd\n");
 		
 		close(curfd);
 		close(scan2even[0]);close(scan2even[1]);close(even2scan[0]);close(even2scan[1]);
 		
 		close(0);dup2(scan2odd[0],0);close(scan2odd[0]);close(scan2odd[1]);
 		close(1);dup2(odd2scan[1],1);close(odd2scan[1]);close(odd2scan[0]);
-		printf("enter into new child process odd,about to exec\n");
+		//printf("enter into new child process odd,about to exec\n");
 		execl("./evenodd","odd",scannerID,(char*)NULL);
-		printf("Unable to exec odd");
+		//printf("Unable to exec odd");
+		fprintf(stderr,"Unable to exec odd\n");
 	}
-	printf(" even PID=%d,odd PID=%d\n ",even,odd);
+	//printf(" even PID=%d,odd PID=%d\n ",even,odd);
 	
 	close(curfd);
 	close(scan2even[0]);close(scan2even[1]);
@@ -108,7 +111,7 @@ int main(int argc, char *argv[]){
 	   }
 	}
 	
-	printf("driver is after fork/exec\n");
+	//printf("driver is after fork/exec\n");
 	
 
 	return 0;
