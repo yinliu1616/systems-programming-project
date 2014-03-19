@@ -27,6 +27,30 @@ void printBoard(char board[]){
  }
 }
 
+int checkBoard(char board[],char role){
+    
+    int i;
+    for(i=0;i<3;i++){
+      if((board[i*3+0]==role)&&(board[i*3+1]==role)&&(board[i*3+2]==role))
+        return 1;
+      if((board[i+0]==role)&&(board[i+3]==role)&&(board[i+6]==role))
+        return 1;
+    }
+    if((board[0]==role)&&(board[4]==role)&&(board[8]==role))
+        return 1;
+    if((board[2]==role)&&(board[4]==role)&&(board[6]==role))
+        return 1;
+
+    int j;
+    for (j=0;j<9;j++){
+        if (isdigit(board[j]))
+            return 0;
+    }
+
+    return -1;
+
+}
+
 void initMsg(struct Message *msg){
     msg->type=WHO; 
     strcpy(msg->handle,"yinliu");
@@ -38,7 +62,13 @@ void initMsg(struct Message *msg){
     strcpy(msg->board,"123456789");
 }
 
-
+void initGame(struct Game* game){
+    int i;
+    for (i=0;i<9;i++){
+      game->board[i]='1'+i;
+    }
+    game->result=0;  
+}
 
 
 void sendMsg(int sock, struct Message *msg){
@@ -77,10 +107,6 @@ void recvMsg(int sock, struct Message *recvmsg,struct Message *sendmsg){
      printf("sendmsg->handle=%s\n",sendmsg->handle);
      sendMsg(sock,sendmsg);
 
-	   //printf("sending Msg: \n");
-     //printMsg(sendmsg);
-  
-  
   	break;
    case HANDLE:
     break;
@@ -90,16 +116,68 @@ void recvMsg(int sock, struct Message *recvmsg,struct Message *sendmsg){
 
     if (recvmsg->xoID==0){
       printf("you are o\n");
-      printBoard(recvmsg->board);
-      printf("please input your move\n");
+      printf("waiting for input request\n");
+
+
     }else if (recvmsg->xoID==1){
       printf("you are x\n");
-      printf("waiting your oppnonet's move\n");
+      printf("waiting for input request\n");
     }
     break;
+    case ASK_MOVE:
+      if (recvmsg->xoID==0){
+      printf("you are o\n");
+      
+      printf("please input the position according to remaining numbers in the board\n");
+      printBoard(recvmsg->board);
+
+      scanf ("%d",&(sendmsg->move));
+      while ((sendmsg->move>10)||(sendmsg->move<0)||(recvmsg->board[sendmsg->move-1]=='o')||(recvmsg->board[sendmsg->move-1]=='x')){
+        printf("invalid input \n");
+
+        printf("please input the position according to remaining numbers in the board\n");
+        printBoard(recvmsg->board);
+        scanf ("%d",&(sendmsg->move));
+
+      }
 
 
+      sendmsg->type=MY_MOVE;
+      printf("your move has been sent, waiting for opponet's move\n");
+      sendMsg(sock,sendmsg);
 
+
+    }else if (recvmsg->xoID==1){
+      printf("you are x\n");
+      printf("please input the position according to remaining numbers in the board\n");
+
+      printBoard(recvmsg->board);
+      scanf ("%d",&(sendmsg->move));
+      while ((sendmsg->move>10)||(sendmsg->move<0)||(recvmsg->board[sendmsg->move-1]=='o')||(recvmsg->board[sendmsg->move-1]=='x')){
+        printf("invalid input \n");
+
+        printf("please input the position according to remaining numbers in the board\n");
+        printBoard(recvmsg->board);
+        scanf ("%d",&(sendmsg->move));
+
+      }
+
+
+      sendmsg->type=MY_MOVE;
+      printf("your move has been sent, waiting for opponet's move\n");
+
+      sendMsg(sock,sendmsg);
+    }
+    break;
+    case RESULT:
+      if (recvmsg->result==0){
+        printf("you lose!\n");
+      }else if (recvmsg->result==1){
+        printf("you win!\n");
+      }else if (recvmsg->result==-1){
+        printf("A draw!\n");
+      }
+    break;
 
 }
   

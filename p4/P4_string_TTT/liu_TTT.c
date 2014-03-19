@@ -41,7 +41,7 @@ int main()
   //struct GameStatus *gamestatus;
   //initGameStatues(gamestatus);
   int total_conn=0;//total number of 
-  int conn[7];//all the connection the server maintains
+  int conn[2];//all the connection the server maintains
   char oppo[2][HANLELEN];//handle of the two opponent
   struct Game* game;
 
@@ -128,6 +128,7 @@ int main()
         printf("the oppo %d's handle is %s\n,the oppo %d's handle is %s\n", 0,oppo[0],1,oppo[1]);
         //game=newgame(conn[0],conn[1],oppo[0],oppo[1]);
         game=(struct Game* )malloc(sizeof(struct Game));
+        //initGame(game);
         game->match[0]=conn[0];
         game->match[1]=conn[1];
         strcpy(game->opponent[0],oppo[0]);
@@ -136,6 +137,7 @@ int main()
         for (i=0;i<9;i++){
         game->board[i]='1'+i;
         }
+        game->result=-1; 
         startGame(game);
 
     }
@@ -189,20 +191,103 @@ void startGame(struct Game* game){
   struct Message* recvmsg[2];//=(struct Message* )malloc(sizeof(struct Message));
   //struct Message* sendmsg_x;//=(struct Message* )malloc(sizeof(struct Message));
   sendmsg[0]=(struct Message* )malloc(sizeof(struct Message));
-  initMsg(sendmsg[0]);
-  sendmsg[0]->type=MATCH;
-  strncpy(sendmsg[0]->opp_handle,game->opponent[1],strlen(game->opponent[1]));
+  sendmsg[1]=(struct Message* )malloc(sizeof(struct Message));
+  recvmsg[0]=(struct Message* )malloc(sizeof(struct Message));
+  recvmsg[1]=(struct Message* )malloc(sizeof(struct Message));
 
+  memset(sendmsg[0],0,sizeof(*sendmsg));
+  memset(sendmsg[1],0,sizeof(*sendmsg));
+
+  sendmsg[0]->type=MATCH;
+  strcpy(sendmsg[0]->handle,game->opponent[0]);
+  strcpy(sendmsg[0]->opp_handle,game->opponent[1]);
   sendmsg[0]->xoID=0;
   sendMsg(game->match[0],sendmsg[0]);
-
-
-  sendmsg[1]=(struct Message* )malloc(sizeof(struct Message));
-  initMsg(sendmsg[1]);
+  
   sendmsg[1]->type=MATCH;
-  strncpy(sendmsg[1]->opp_handle,game->opponent[0],strlen(game->opponent[0]));
-
+  strcpy(sendmsg[1]->handle,game->opponent[1]);
+  strcpy(sendmsg[1]->opp_handle,game->opponent[0]);
   sendmsg[1]->xoID=1;
+  sendMsg(game->match[1],sendmsg[1]);
+
+  int i=0;
+  int pos;
+  while(1){
+    i=i%2;
+    memset(sendmsg[i],0,sizeof(*sendmsg));
+    sendmsg[i]->type=ASK_MOVE;
+    sendmsg[i]->xoID=i;
+    strcpy(sendmsg[i]->opp_handle,game->opponent[(i+1)%2]);
+
+    strcpy(sendmsg[i]->handle,game->opponent[i]);
+    strcpy(sendmsg[i]->board,game->board);
+    sendMsg(game->match[i],sendmsg[i]);
+
+    pos=-1;
+    recvMsg(game->match[i],recvmsg[i],sendmsg[i]);
+    if (recvmsg[i]->type==MY_MOVE){
+        printf("received MOVE from player %d\n",i);
+        pos=recvmsg[i]->move-1;
+        if (i==0){
+          game->board[pos]='o';
+          if (checkBoard(game->board,'o')==1){
+              printf("o win!!!\n");
+              game->result=0;
+              break;
+          }else if (checkBoard(game->board,'o')==-1){
+              printf("A draw!!!\n");
+              game->result=-1;
+              break;
+          }
+
+
+
+
+
+
+        }else if (i==1){
+          game->board[pos]='x';
+          if (checkBoard(game->board,'x')==1){
+              printf("x win!!!\n");
+              game->result=1;
+              break;
+          }else if (checkBoard(game->board,'x')==-1){
+              printf("A draw!!!\n");
+              game->result=-1;
+              break;
+          }
+        }
+    }
+
+    
+
+    i++;
+
+  }
+
+  sendmsg[0]->type=RESULT;
+  strcpy(sendmsg[0]->handle,game->opponent[0]);
+  strcpy(sendmsg[0]->opp_handle,game->opponent[1]);
+
+  sendmsg[1]->type=RESULT;
+  strcpy(sendmsg[1]->handle,game->opponent[1]);
+  strcpy(sendmsg[1]->opp_handle,game->opponent[0]);
+
+  if (game->result==0){
+    sendmsg[0]->result=1;
+    sendmsg[1]->result=0;
+
+  }else if (game->result==1){
+    sendmsg[0]->result=0;
+    sendmsg[1]->result=1;
+
+  }else if (game->result==-1){
+    sendmsg[0]->result=-1;
+    sendmsg[1]->result=-1;
+  }
+  
+  sendMsg(game->match[0],sendmsg[0]);
+  
   sendMsg(game->match[1],sendmsg[1]);
 
 

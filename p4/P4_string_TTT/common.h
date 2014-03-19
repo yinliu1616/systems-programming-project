@@ -50,8 +50,11 @@ struct ServerStatus{
 struct Game{
   int match[2];//all the connection the server maintains
   char opponent[2][HANLELEN];//handle of the two opponent
-  char board[9];
+  char board[10];
+  int result;
 };
+
+
 /*
 struct Game * newgame(int conn0,int conn1,char* oppo0,char *oppo1){
   struct Game *game=(struct Game* )malloc(sizeof(struct Game));
