@@ -20,6 +20,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+
+
 #include "common.h"
 
 void printsin(struct sockaddr_in*, char*, char*);
@@ -33,10 +35,13 @@ int main()
   int listener;  /* fd for socket on which we get connection requests */
   //int conn,conn2;      /* fd for socket thru which we pass data */
   struct sockaddr_in *localaddr, peer,peer2;
+
+
   int ecode;
   socklen_t length,length2;
   char ch;
   struct addrinfo hints, *addrlist;
+
 
   //struct GameStatus *gamestatus;
   //initGameStatues(gamestatus);
@@ -45,7 +50,22 @@ int main()
   char oppo[2][HANLELEN];//handle of the two opponent
   struct Game* game;
 
+//share hostname a file
+  if( remove( "hostname.txt" ) != 0 )
+    perror( "Error deleting hostname.txt" );
+  else
+    printf( "File hostname.txt successfully deleted\n" );
+  int hostnamefile=open("hostname.txt",O_RDWR|O_CREAT,0644);
 
+  char hostname[1024];
+  memset(hostname,0,1024);
+  gethostname(hostname, 1023);
+  hostname[1023]='\0';
+
+  //printf(hostname);
+  //printf("\n");
+  write(hostnamefile,hostname,1024);
+  close(hostnamefile);
 /* 
    Want to specify local server address of:
       addressing family: AF_INET
@@ -66,7 +86,22 @@ int main()
   }
 
   localaddr = (struct sockaddr_in *) addrlist->ai_addr;
- 
+
+  //printsin(localaddr,"localaddr::", "localaddr"); //all 0.0.0.0
+
+  /*
+  char host[NI_MAXHOST];
+  
+  ecode = getnameinfo(localaddr, sizeof(*localaddr),
+                          host, NI_MAXHOST, NULL, 0, NI_NAMEREQD);
+  if (ecode) {
+    fprintf(stderr, "getnameinfo: %s\n", gai_strerror(ecode));
+    exit(1);
+  }
+
+  printf("Hostname: %s\n", host); 
+  */
+
 /*
    Create socket on which we will accept connections. This is NOT the
    same as the socket on which we pass data.
@@ -128,48 +163,26 @@ int main()
         printf("the oppo %d's handle is %s\n,the oppo %d's handle is %s\n", 0,oppo[0],1,oppo[1]);
         //game=newgame(conn[0],conn[1],oppo[0],oppo[1]);
         game=(struct Game* )malloc(sizeof(struct Game));
-        //initGame(game);
+        initGame(game);
         game->match[0]=conn[0];
         game->match[1]=conn[1];
         strcpy(game->opponent[0],oppo[0]);
         strcpy(game->opponent[1],oppo[1]);
+        /*
         int i;
         for (i=0;i<9;i++){
         game->board[i]='1'+i;
         }
-        game->result=-1; 
+        */
+        //game->result=-1; 
         startGame(game);
-
+        initGame(game);
+        memset(oppo[0],0,HANLELEN);
+        memset(oppo[1],0,HANLELEN);
+        total_conn=0;
     }
 
   }
-  
-
-
-
-  //write(conn, "Who", 3);
-/*
-  printf("\n\nRSTREAM:: data from stream:\n");
-  while ( read(conn, &ch, 1) == 1)
-    putchar(ch);
-  putchar('\n');
-  */
-   /*
-  listen(listener,1);
-  length = sizeof(peer2);
-  if ((conn2=accept(listener, (struct sockaddr *)&peer2, &length2)) < 0) {
-    perror("inet_rstream:accept");
-    exit(1);
-  }
-  printsin(&peer2,"RSTREAM::", "accepted connection from"); 
-
-  printf("\n\nRSTREAM:: data from stream:\n");
-  while ( read(conn2, &ch, 1) == 1)
-    putchar(ch);
-  putchar('\n');
-   */
-
-
   exit(0);
 }
 

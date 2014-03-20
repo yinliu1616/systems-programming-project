@@ -32,12 +32,24 @@ char **argv;
   struct sockaddr_in *server;
   struct addrinfo hints, *addrlist;
   char ch;
-
+  /*
   if (argc != 3) {
     fprintf(stderr,"inet_wstream:usage is inet_wstream host port\n");
     exit(1);
   }
+  */
 
+  int hostnamefile=open("hostname.txt",O_RDONLY);
+  char hostname[1024];
+  char c;
+  int i=0;
+  while (read(hostnamefile,&c,1)==1){
+      if (c==0)
+        break;
+      hostname[i++]=c;
+  }
+  hostname[i]='\0';
+  printf("hostname is %s, length is %d\n",hostname,strlen(hostname));
 
 
 /*
@@ -51,7 +63,7 @@ char **argv;
   hints.ai_canonname = NULL; hints.ai_addr = NULL;
   hints.ai_next = NULL;
 
-  ecode = getaddrinfo(argv[1], argv[2], &hints, &addrlist);
+  ecode = getaddrinfo(hostname, "52016", &hints, &addrlist);
   if (ecode != 0) {
     fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(ecode));
     exit(1);
@@ -82,7 +94,11 @@ while (1){
   //initMsg(recvmsg);
   //initMsg(sendmsg);
   recvMsg(sock,recvmsg,sendmsg);
+  if (recvmsg->type==RESULT)
+    break;
 }
+
+
 
 
 

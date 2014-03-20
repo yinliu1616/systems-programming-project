@@ -67,7 +67,7 @@ void initGame(struct Game* game){
     for (i=0;i<9;i++){
       game->board[i]='1'+i;
     }
-    game->result=0;  
+    game->result=-1;  
 }
 
 
@@ -76,8 +76,8 @@ void sendMsg(int sock, struct Message *msg){
   memset(data,0,MSGLEN);
   memcpy(data,msg,sizeof(*msg)); 
 
-  send(sock, data,sizeof(data), 0);
-
+  //send(sock, data,sizeof(data), 0);
+  write(sock, &data, MSGLEN);
   printf("Msg before sending : \n");
   printMsg(msg);
 }
@@ -85,7 +85,10 @@ void sendMsg(int sock, struct Message *msg){
 void recvMsg(int sock, struct Message *recvmsg,struct Message *sendmsg){
   char data[MSGLEN];
   memset(data,0,MSGLEN);
-  recv(sock, data, MSGLEN, 0);
+  //recv(sock, data, MSGLEN, 0);
+  read(sock, &data, MSGLEN);
+
+
   memset(recvmsg,0,sizeof(*recvmsg));
     memset(sendmsg,0,sizeof(*sendmsg));
 

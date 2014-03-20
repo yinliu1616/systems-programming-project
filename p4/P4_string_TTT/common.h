@@ -1,3 +1,7 @@
+
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <sys/socket.h>
 #include <stdio.h>
 #include <string.h>
