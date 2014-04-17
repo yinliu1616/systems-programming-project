@@ -1,0 +1,337 @@
+#!/bin/sh
+#usage: archive -c dirname, create the directory and install a bounds le containing 0:0
+#archive dirname -a filename -s subject string, add the contents designated text file to the archive
+#archive dirname -d msgnum, remove the designated file
+#archive dirname -S, one line of output per message in the archive
+#archive dirname -ss string, scan the archive for occurrences of the designated string
+#archive dirname -sb string
+
+if [ $# = 2 ] && [ $1 = "-c" ]
+then
+  #echo "2 command line parameters, create a archive"
+  #echo "dirname is $2"
+  dirname=$2
+  if test -d $dirname; then
+      echo "$dirname already exists"
+      exit 2
+  fi
+  #echo "dirname is $dirname"
+  eval "mkdir $dirname"
+  
+  eval "touch $dirname/bounds"
+  initialVAL="0:0"
+  eval "echo $initialVAL >> $dirname/bounds"
+  echo "$dirname is successfully created"
+  exit 0
+fi
+
+if [ $# = 5 ] ; then
+	dirname=$1
+	if [ $2 = "-a" ] && [ $4 = "-s" ];then
+		flag="true"
+		filename=$3
+		string=$5
+
+	elif [ $2 = "-s" ] && [ $4 = "-a" ];then
+		flag="true"
+		filename=$5
+		string=$3
+	else
+		flag="false"
+		echo " input should follow:"
+		echo " archive dirname -a filename -s subject string "
+		echo " or archive dirname -s subject string -a filename"
+		exit 2
+	fi
+# test length of string is greater than 31 or not  
+strlen=${#string}
+#echo $strlen
+if [ $strlen -gt 31 ];then
+    echo "subject string is too long"
+    exit 2
+fi
+# test length of filename is greater than 31 or not  
+filelen=${#filename}
+#echo $filelen
+if [ $filelen -gt 511 ];then
+    echo "file name is too long"
+    exit 2
+fi
+
+if [[ $string =~ [[:print:]] ]];then #The subject string must contain only printable alphabetic and numeric characters, spaces, and the punctuation characters
+
+###########all the command line parameters are normal
+
+	if [ $flag = true ];then
+#	  	echo "5 command line parameters, add the contents designated text file to the archive"
+# if dirname does not exits, exit gracefully	  	
+	  	if test -d $dirname; then
+
+			eval "bounds=$(cat $dirname/bounds) "
+			
+			biggest=`echo $bounds| cut -d':' -f 2`
+			smallest=`echo $bounds| cut -d':' -f 1`
+	  	echo "bounds is $bounds before adding this message"
+
+			#echo $biggest
+			#echo $smallest
+
+	  		newfile=`expr $biggest + 1`
+	  		echo "adding message $newfile"
+	  		eval "rm $dirname/bounds"
+	  		eval "touch $dirname/bounds"
+#if this is the first file, bound will be 1:1 after file 1 has been added
+        if [ $bounds = "0:0" ]; then
+            smallest=$newfile
+        fi
+
+
+
+  			newVAL="$smallest:$newfile"
+  			eval "echo $newVAL >> $dirname/bounds"
+        echo "bounds is $newVAL now"
+  			eval "touch $dirname/$newfile"
+  			firstLine="Subject: $string"
+# 	  		echo $firstLine
+		
+  			now=$(date)
+  			secondLine="Date: $now"
+#  			echo $secondLine
+
+  			thirdLine="====="
+
+  			eval "echo $firstLine >> $dirname/$newfile"
+   			eval "echo $secondLine >> $dirname/$newfile"
+  			eval "echo $thirdLine >> $dirname/$newfile"  			
+        eval "echo $filename >> $dirname/$newfile"       
+
+	  	else
+	  		echo "$dirname does not exist"
+	  		exit 2
+	  	fi
+
+	fi
+else
+   echo "The subject string must contain only printable characters"
+fi
+exit 0 
+fi
+
+if [ $# = 3 ] && [ $2 = "-d" ]; then
+  dirname=$1
+  msgnum=$3
+
+  if test -d $dirname; then
+ #    echo "directory $dirname exists"
+
+    if test -f $dirname/$msgnum; then
+ #       echo "file $dirname/$msgnum exists"
+
+ #       echo "3 command line parameters, delete file $3"
+        eval "bounds=$(cat $dirname/bounds) "
+        biggest=`echo $bounds| cut -d':' -f 2`
+        smallest=`echo $bounds| cut -d':' -f 1`
+        echo "bounds is $bounds before deleting $msgnum"
+
+ #       echo $biggest
+ #       echo $smallest
+
+        if [ $msgnum -gt $biggest ] || [ $msgnum -lt $smallest ]; then
+            echo "there is no file whose name is $msgnum"
+            exit 2
+        fi
+ #       echo $msgnum
+        eval "rm $dirname/$msgnum"
+
+  if [ $smallest -eq $biggest ];then # if msgnum is the one last msg, the whole directory will be reset to 0:0
+        eval "rm $dirname/bounds"
+        eval "touch $dirname/bounds"
+        original="0:0"
+        eval "echo $original >> $dirname/bounds"
+        echo "Archive $dirname becomes empty again, bounds is reset to 0:0"
+        exit 0
+  fi
+
+        after=$msgnum
+        i=`expr $msgnum - 1`
+
+        until [ $i -lt $smallest ]
+        do 
+        eval "mv $dirname/$i $dirname/$after"
+        i=$(expr $i - 1)
+        after=$(expr $after - 1)
+        done
+
+        smallest=$(expr $smallest + 1)
+        eval "rm $dirname/bounds"
+        eval "touch $dirname/bounds"
+     
+        newVAL="$smallest:$biggest"
+        eval "echo $newVAL >> $dirname/bounds"
+        echo "bounds is $newVAL now"
+
+
+
+    else  
+      echo "File $dirname/$msgnum does not exist"
+      exit 2
+    fi
+  else  
+      echo "Archive $dirname does not exist"
+      exit 2
+  fi 
+exit 0
+fi
+
+
+
+if [ $# = 2 ] && [ $2 = "-S" ];then
+  dirname=$1
+  if test -d $dirname; then
+      eval "bounds=$(cat $dirname/bounds) "
+      
+      biggest=`echo $bounds| cut -d':' -f 2`
+      smallest=`echo $bounds| cut -d':' -f 1`
+      echo "bounds is $bounds"
+#      echo $biggest
+#      echo $smallest
+
+      if [ $biggest = 0 ] && [ $smallest = 0 ];then
+          echo "Empty message archive"
+          exit 0
+      fi
+
+  
+      i=$smallest
+
+      until [ $i -gt $biggest ]
+      do 
+ #     eval "cat $dirname/$i"
+
+      firstline=` sed '1!d' $dirname/$i `
+      secondline=` sed '2!d' $dirname/$i `
+  #    echo ${firstline:9}
+  #    echo ${secondline:6}
+
+      echo "$i  ${firstline:9}  [ ${secondline:6} ]"
+  
+      i=$(expr $i + 1)
+      done
+
+  else
+     echo "$dirname does not exist"
+     exit 2
+  fi
+exit 0
+fi
+
+
+if [ $# = 3 ] && [ $2 = "-ss" ]; then
+#  echo "3 command line parameters, search in subject lines"
+
+  dirname=$1
+  string=$3
+
+  if test -d $dirname; then
+      eval "bounds=$(cat $dirname/bounds) "
+      
+      biggest=`echo $bounds| cut -d':' -f 2`
+      smallest=`echo $bounds| cut -d':' -f 1`
+ #     echo $bounds
+ #     echo $biggest
+ #     echo $smallest
+
+      if [ $biggest = 0 ] && [ $smallest = 0 ];then
+          echo "Empty message archive"
+          exit 0
+      fi
+
+  
+      i=$smallest
+      count=0
+      until [ $i -gt $biggest ]
+      do 
+      firstline=` sed '1!d' $dirname/$i `
+      sub_string=${firstline:9}
+#      echo $sub_string
+      if [[ "$sub_string" =~ "$string" ]];then
+      echo $i
+      count=$(expr $count + 1)
+      fi
+
+      i=$(expr $i + 1)
+      done
+
+#      echo "$count matching results in total"
+  else
+     echo "$dirname does not exist"
+     exit 2
+  fi
+exit 0
+fi
+
+
+
+if [ $# = 3 ] && [ $2 = "-sb" ]; then
+#  echo "3 command line parameters, search in subject lines"
+
+  dirname=$1
+  string=$3
+  count=0
+
+  if test -d $dirname; then
+      eval "bounds=$(cat $dirname/bounds) "
+      
+      biggest=`echo $bounds| cut -d':' -f 2`
+      smallest=`echo $bounds| cut -d':' -f 1`
+#      echo $bounds
+#      echo $biggest
+#      echo $smallest
+    if [ $biggest = 0 ] && [ $smallest = 0 ];then
+          echo "Empty message archive"
+          exit 0
+    fi
+  
+      i=$smallest
+
+      until [ $i -gt $biggest ]
+      do 
+          #message=""
+          #echo $message
+          awk "NR > 3" $dirname/$i |
+          while read line; do
+             #message="$message"$'\n'line
+            if [[ "$line" =~ "$string" ]];then
+   #             echo $line
+                echo $i
+  #              count=$(expr $count + 1)
+ #               echo "count=$count"
+                break
+            fi
+
+          done
+          #echo $message
+      i=$(expr $i + 1)
+      done
+
+ #     echo "$count matching results in total"
+  else
+     echo "$dirname does not exists"
+     exit 2
+  fi
+
+
+else
+    echo "Invalid use of archive"
+
+fi
+
+
+#if [ $# = 2 ] && [ $1 = "delall" ]
+#then
+#  echo "delete whole dir"
+#  eval "rm -r $2"
+
+#fi
+
+
